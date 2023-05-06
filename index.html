@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odin-Tic-Tac-Toe</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="javascript.js" defer></script>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="header"><h1>This is the header</h1></div>
+        <div id="controlPanel">
+            <form action="" id="controlForm">
+                <div class="controls">
+                    <fieldset>
+                        <legend>Select your symbol</legend>
+                        <input type="radio" name="symbol" id="X" value="X">
+                        <label for="X">X</label>
+                        <input type="radio" name="symbol" id="O" value="O">
+                        <label for="O">O</label>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Set the board size</legend>
+                        <input type="range" id="boardSizer" name="boardSize" min="3" max="6" step="1" value="3" list="sizes">
+                        <datalist id="sizes">
+                            <option value="3" label="3"></option>
+                            <option value="4" label="4"></option>
+                            <option value="5" label="5"></option>
+                            <option value="6" label="6"></option>
+                          </datalist>
+                    </fieldset>
+                </div>
+            </form>
+        </div>
+        <div id="playBoard">
+            <div class="column">1</div>
+            <div class="column">2</div>
+            <div class="column">3</div>
+            <div class="column">4</div>
+            <div class="column">5</div>
+            <div class="column">6</div>
+            <div class="column">7</div>
+            <div class="column">8</div>
+            <div class="column">9</div>
+        </div>
+    </div>
+</body>
+</html>
