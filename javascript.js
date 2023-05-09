@@ -1,19 +1,11 @@
 
-//Handles all the functions related to the #playBoard
-(function boardModule() {
-    const playBoard = document.querySelector('#playBoard');
-    const boardSizer = document.querySelector('#boardSizer');
-    const column = document.querySelector('.column');
-    
 
-    //controls #playBoard size changes -> it will be changed to start button
-    boardSizer.addEventListener('click', ()=>{
-        const choosenSize = boardSizer.value;
-        playBoardStyler(choosenSize);
-        setPlayBoardSize(choosenSize)
-        addId(choosenSize);
-    })
-    
+//Contains all the functions related to the #playBoard
+const boardModule = (() => {
+    const playBoard = document.querySelector('#playBoard');
+    const column = document.querySelector('.column');
+    const boardSizer = document.querySelector('#boardSizer');
+
     //sets size of #playBoard
     function setPlayBoardSize(choosenSize) {
         const columnCount = document.querySelector('#playBoard').childElementCount;
@@ -61,8 +53,25 @@
         }
     }
 
+    return {boardSizer, setPlayBoardSize, playBoardStyler, addId};
 })();
+  
 
+//Contains all the controls of the game
+(function gameController() {
+    const startButton = document.querySelector('#startButton');
+    const restartButton = document.querySelector('#restartButton');
+    const playersSymbol = document.forms.controlForm.elements.playersSymbol.value;
 
+    //Starts the game if start button is clicked
+    (function startGame() {
+        startButton.addEventListener('click', ()=>{
+        const choosenSize = boardModule.boardSizer.value;
 
+        boardModule.playBoardStyler(choosenSize);
+        boardModule.setPlayBoardSize(choosenSize);
+        boardModule.addId(choosenSize);
+    });})();
+    
+})();
 

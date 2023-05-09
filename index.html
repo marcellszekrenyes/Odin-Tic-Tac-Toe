@@ -16,9 +16,9 @@
                 <div class="controls">
                     <fieldset>
                         <legend>Select your symbol</legend>
-                        <input type="radio" name="symbol" id="X" value="X">
+                        <input type="radio" name="playersSymbol" id="X" value="X" checked>
                         <label for="X">X</label>
-                        <input type="radio" name="symbol" id="O" value="O">
+                        <input type="radio" name="playersSymbol" id="O" value="O">
                         <label for="O">O</label>
                     </fieldset>
                     <fieldset>
@@ -30,6 +30,21 @@
                             <option value="5" label="5"></option>
                             <option value="6" label="6"></option>
                           </datalist>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Set the winning score</legend>
+                        <input type="range" id="winningScore" name="winningScore" min="3" max="6" step="1" value="3" list="sizes">
+                        <datalist id="sizes">
+                            <option value="3" label="3"></option>
+                            <option value="4" label="4"></option>
+                            <option value="5" label="5"></option>
+                            <option value="6" label="6"></option>
+                          </datalist>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Controls</legend>
+                        <button id="startButton" type="button">Start</button>
+                        <button id="restartButton">Restart</button>
                     </fieldset>
                 </div>
             </form>

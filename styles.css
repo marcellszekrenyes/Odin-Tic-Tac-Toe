@@ -74,3 +74,7 @@ datalist {
     transition: 0.3s;
     background-color: rgb(238, 238, 40);
 }
+
+#winningScore {
+    width: 90%;
+}
