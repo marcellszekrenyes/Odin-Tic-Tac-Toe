@@ -104,6 +104,7 @@ const boardModule = (() => {
         const choosenSize = boardModule.boardSizer.value;
         const winningScore = document.querySelector('#winningScore').value;
         const playerSymbol = document.forms.controlForm.elements.playerSymbol.value;
+        const gameMode = document.forms.controlForm.elements.gameMode.value;
         const allColumns = boardModule.allColumns;
 
         //sets the symbol for player two
@@ -124,7 +125,7 @@ const boardModule = (() => {
             boardModule.addId(choosenSize, allColumns);
             boardModule.addFreeClass(allColumns);
             startTracking(choosenSize);
-            gameLogic(playerSymbol, playerTwoSymbol, choosenSize, winningScore);
+            gameLogic(playerSymbol, playerTwoSymbol, choosenSize, winningScore, gameMode, allColumns);
 
             // //Just some helpers
             // console.log(playerOne);
@@ -133,15 +134,16 @@ const boardModule = (() => {
             alert('The score required for winning can not be higher than the board size! Set it again!');
             startGame();
         }
-        
+        // restartButton.addEventListener('click', () =>{})
 
     }, {once: true});})();
 
-
-    async function gameLogic(playerSymbol, playerTwoSymbol, choosenSize, winningScore, ) {
+    //I should probably rename these next functions as during the iterations their function have changed a lot
+    async function gameLogic(playerSymbol, playerTwoSymbol, choosenSize, winningScore, gameMode, allColumns) {
+        let roundCount = 1;
         while(true) {
             let isLastRound = false;
-            await nextRound(playerSymbol, playerTwoSymbol, choosenSize, winningScore).then((res) => {
+            await nextRound(playerSymbol, playerTwoSymbol, choosenSize, winningScore, gameMode, allColumns, roundCount).then((res) => {
                 isLastRound = res;
                 console.log('isLastRound:' + isLastRound)
                 console.log('11');
@@ -149,12 +151,13 @@ const boardModule = (() => {
             if(isLastRound == true) {
                 break;
             }
+            roundCount++;
         }
         gameOver();
     }
 
-    //Registers every move into fieldTracker
-    async function nextRound(playerSymbol, playerTwoSymbol, choosenSize, winningScore) {
+    //Registers every move into fieldTracker, handles the rounds
+    async function nextRound(playerSymbol, playerTwoSymbol, choosenSize, winningScore, gameMode, allColumns, roundCount) {
         console.log('1');
         return new Promise((resolve) => {
             playBoard.addEventListener("click", (e) => {
@@ -176,7 +179,7 @@ const boardModule = (() => {
                     }
                     setTimeout(() => {
                         console.log('7');             
-                        const playerTwoWon = nextMove(botMove(), playerTwoSymbol, choosenSize, winningScore);
+                        const playerTwoWon = nextMove(botMove(gameMode, allColumns, playerSymbol, playerTwoSymbol, roundCount, choosenSize), playerTwoSymbol, choosenSize, winningScore);
                         if(playerTwoWon == true) {
                             console.log('8');
                         resolve(true);
@@ -229,7 +232,7 @@ const boardModule = (() => {
         
         stopTracking(rowId, columnId, choosenSize);
         // //Helper
-        console.log(fieldTracker);          
+        console.log(fieldTracker);  
         const gameIsOver = checkProgress(winnerString, rowId, columnId);
         console.log('2.5');
         console.log(playerSymbol);
@@ -237,16 +240,195 @@ const boardModule = (() => {
         return gameIsOver;
     }
 
-    //Makes a random move
-    function botMove() {
-        const allColumns = playBoard.children;
-        
-        while (true) {
-            const randomElement = allColumns[Math.floor(Math.random() * allColumns.length)];
-            if(randomElement.classList.contains('free')) {
-                return randomElement;    
+    //Makes a random move or a hardcore move
+    function botMove(gameMode, allColumns, playerSymbol, playerTwoSymbol, roundCount) {
+        switch(gameMode){
+            case 'Easy':
+                while (true) {
+                const randomElement = allColumns[Math.floor(Math.random() * allColumns.length)];
+                if(randomElement.classList.contains('free')) {
+                    return randomElement;    
+                }}
+
+            case 'Hard':
+                let firstRounder = [];
+                let firstGrade = [];
+                let extraGrade = [];
+                let secondGrade = [];
+                let thirdGrade = [];
+                console.log(`roundCount = ${roundCount}`);
+                if(roundCount >= 1){
+
+                    //WINNER
+                    for (nextColumn of allColumns) {
+                        if(nextColumn.classList.contains('free')) {
+                            const id = nextColumn.id;
+                            const rowId = "row_" + id.slice(7, 8);
+                            const columnId ="column_" +  id.slice(9, 10);
+
+                            if(countString(fieldTracker[rowId], playerTwoSymbol) > 1 || countString(fieldTracker[columnId], playerTwoSymbol) > 1 ||
+                              countString(fieldTracker.diagonal_1, playerTwoSymbol) > 1 || countString(fieldTracker.diagonal_2, playerTwoSymbol) > 1){
+                                console.log('return winner');
+                                if(countString(fieldTracker.diagonal_1, playerTwoSymbol) > 1) {
+                                    for(let i = 1; i <= choosenSize; i++) {
+                                        if(document.getElementById(`#column_${i}_${i}`).classList.contains('free')){
+                                            return document.getElementById(`#column_${i}_${i}`);
+                                        }
+                                    }
+                                }
+
+                                if(countString(fieldTracker.diagonal_2, playerSymbol) > 1) {
+                                    let j = choosenSize;
+                                    for (let i = 1; i <= choosenSize; i++) {
+                                        if(document.getElementById('id', `#column_${i}_${j}`).classList.contains('free')){
+                                            return document.getElementById(`#column_${i}_${j}`);
+                                        }
+                                        j--;
+                                    }
+                                }
+                                
+                                return nextColumn;
+                            }
+                        }
+                    }
+
+                    //SAVER
+                    for (nextColumn of allColumns) {
+                        if(nextColumn.classList.contains('free')) {
+                            const id = nextColumn.id;
+                            const rowId = "row_" + id.slice(7, 8);
+                            const columnId ="column_" +  id.slice(9, 10);
+
+                            if(countString(fieldTracker[rowId], playerSymbol) > 1 || countString(fieldTracker[columnId], playerSymbol) > 1  ||
+                              countString(fieldTracker.diagonal_1, playerSymbol) > 1 || countString(fieldTracker.diagonal_2, playerSymbol) > 1){
+                                console.log('return saver');
+                                console.log(`column = ${columnId}, row = ${rowId}`);
+                                if(countString(fieldTracker.diagonal_1, playerSymbol) > 1) {
+                                    for(let i = 1; i <= choosenSize; i++) {
+                                        if(document.getElementById(`#column_${i}_${i}`).classList.contains('free')){
+                                            return document.getElementById(`#column_${i}_${i}`);
+                                        }
+                                    }
+                                }
+
+                                if(countString(fieldTracker.diagonal_2, playerSymbol) > 1) {
+                                    let j = choosenSize;
+                                    for (let i = 1; i <= choosenSize; i++) {
+                                        if(document.getElementById('id', `#column_${i}_${j}`).classList.contains('free')){
+                                            return document.getElementById(`#column_${i}_${j}`);
+                                        }
+                                        j--;
+                                    }
+                                }
+
+                                return nextColumn;
+                            }
+                        }
+                    }
+
+                    
+                }
+
+                
+                for (nextColumn of allColumns) {
+                    if(nextColumn.classList.contains('free')) {
+                        const id = nextColumn.id;
+                        const rowId = "row_" + id.slice(7, 8);
+                        const columnId ="column_" +  id.slice(9, 10);
+
+                        //ONLY IN FIRST ROUND
+                        if(roundCount == 1){
+                            if(!(fieldTracker[rowId].includes(`${playerSymbol}`)) && !(fieldTracker[columnId].includes(`${playerSymbol}`))) {
+                                console.log('added to firstrounder');
+                                firstRounder.push(nextColumn);                                   
+                            }                    
+                        }
+
+                        //FIRSTGRADE
+                        if((fieldTracker[rowId].includes(playerTwoSymbol) && fieldTracker[columnId].includes(playerTwoSymbol)) && 
+                          (!fieldTracker[rowId].includes(playerSymbol) && !fieldTracker[columnId].includes(playerSymbol))) {
+                            console.log('added to firstGrades');
+                            firstGrade.push(nextColumn);
+                        }
+
+                        //FIRSTGRADE DIAGONAL
+                        if((fieldTracker.diagonal_1.includes(playerTwoSymbol) && fieldTracker.column_2.includes(playerTwoSymbol)) && 
+                          (!fieldTracker.diagonal_1.includes(playerSymbol) && !fieldTracker.diagonal_1.includes(playerSymbol))) {
+                            console.log('added to firstGrades');
+                            firstGrade.push(nextColumn);
+                        }
+
+                        //EXTRAGRADE
+                        if((fieldTracker[rowId].includes(playerTwoSymbol) || fieldTracker[columnId].includes(playerTwoSymbol)) &&
+                          ((!fieldTracker[rowId].includes(playerSymbol) && !fieldTracker[columnId].includes(playerSymbol)))){
+                            console.log('added to extraGrades');
+                            extraGrade.push(nextColumn);
+                          }
+
+                        //SECONDGRADE
+                        if((fieldTracker[rowId].includes(playerTwoSymbol) && fieldTracker[columnId].includes(playerTwoSymbol)) && 
+                          (!fieldTracker[rowId].includes(playerSymbol) || !fieldTracker[columnId].includes(playerSymbol))){
+                            console.log('added to secondGrades');
+                            secondGrade.push(nextColumn);
+                        }
+
+                        //SECONDGRADE DIAGONAL
+                        if((fieldTracker.diagonal_1.includes(playerTwoSymbol) && fieldTracker.diagonal_2.includes(playerTwoSymbol)) && 
+                          (!fieldTracker.diagonal_1.includes(playerSymbol) || !fieldTracker.diagonal_2.includes(playerSymbol))){
+                            console.log('added to secondGrades');
+                            secondGrade.push(nextColumn);
+                        }
+
+                        //THIRDGRADE INCL. DIAGONAL
+                        if(fieldTracker[rowId].includes(playerTwoSymbol) || fieldTracker[columnId].includes(playerTwoSymbol) || 
+                          countString(fieldTracker.diagonal_1, playerSymbol || countString(fieldTracker.diagonal_2, playerSymbol))){
+                            thirdGrade.push(nextColumn);
+                        }
+
+                    }
+
+                }
+                
+                if (firstRounder.length > 0){
+                    console.log('return firstRounder');
+                    return firstRounder[Math.floor(Math.random() * firstRounder.length)];
+                }else if(firstGrade.length > 0){
+                    console.log('return firstGrade');
+                    return firstGrade[Math.floor(Math.random() * firstGrade.length)];
+                }else if(extraGrade.length > 0){
+                    console.log('return extraGrade');
+                    return extraGrade[Math.floor(Math.random() * extraGrade.length)];
+                }else if(secondGrade.length > 0){
+                    console.log('return secondGrade');
+                    return secondGrade[Math.floor(Math.random() * secondGrade.length)];
+                }else if(thirdGrade.length > 0){
+                    console.log('return secondGrade');
+                    return thirdGrade[Math.floor(Math.random() * thirdGrade.length)];
+                }else{
+                    while (true) {
+                    const randomElement = allColumns[Math.floor(Math.random() * allColumns.length)];
+                    if(randomElement.classList.contains('free')) {
+                        console.log('return random');
+                        return randomElement;
+                    }}
+                }
+        }
+
+    }
+
+    //Counts how many times a letter occurs in a string
+    function countString(string, letter) {
+        let count = 0;
+    
+        // looping through the items
+        for (let i = 0; i < string.length; i++) {
+    
+            // check if the character is at that position
+            if (string.charAt(i) == letter) {
+                count += 1;
             }
         }
+        return count;
     }
 
     //Returns true if current move won the game
@@ -264,16 +446,8 @@ const boardModule = (() => {
         console.log('this is the end');
     }
 
+    ///Checks for draw and returns a boolean
     function checkForDraw(choosenSize) {
-        // const allColumns = playBoard.children;
-        // let isDraw = true;
-        // for(nextColumn of allColumns) {
-        //     if(nextColumn.classList.contains('free')){
-        //         isDraw = false;
-        //     }
-        // }
-        // return isDraw;
-
         let isDraw = true;
 
         if(fieldTracker.diagonal_1.includes('T') || fieldTracker.diagonal_2.includes('T')){
@@ -289,6 +463,7 @@ const boardModule = (() => {
         return isDraw;
     }
 
+    //Adds a T (means 'Tracked') to the end of fieldTracker variables
     function startTracking(choosenSize) {
         for(let i = 1; i <= choosenSize; i++){
             const row = `row_${i}`;
@@ -299,6 +474,7 @@ const boardModule = (() => {
         console.log(fieldTracker);
     }
 
+    //If a column/row contains two different symbols, tracking stops, the T is removed
     function stopTracking(rowId, columnId) {
         if(fieldTracker[rowId].includes('X') && fieldTracker[rowId].includes('O')){
             fieldTracker[rowId] = fieldTracker[rowId].replace('T', '');
@@ -315,7 +491,9 @@ const boardModule = (() => {
     }
 
 
-    //This object (factory) contains all the previous moves
+    //This object (factory) represents the board's actual state,
+    //in Hard mode decisions are made based on this + wins/draws
+    //are determined after reading it out
     const fieldTracker = (() => {
             const row_1 = "123456";
             const row_2 = "123456";
