@@ -241,7 +241,7 @@ const boardModule = (() => {
     }
 
     //Makes a random move or a hardcore move
-    function botMove(gameMode, allColumns, playerSymbol, playerTwoSymbol, roundCount) {
+    function botMove(gameMode, allColumns, playerSymbol, playerTwoSymbol, roundCount, choosenSize) {
         switch(gameMode){
             case 'Easy':
                 while (true) {
@@ -271,17 +271,19 @@ const boardModule = (() => {
                                 console.log('return winner');
                                 if(countString(fieldTracker.diagonal_1, playerTwoSymbol) > 1) {
                                     for(let i = 1; i <= choosenSize; i++) {
-                                        if(document.getElementById(`#column_${i}_${i}`).classList.contains('free')){
-                                            return document.getElementById(`#column_${i}_${i}`);
+                                        if(document.querySelector(`#column_${i}_${i}`).classList.contains('free')){
+                                            fieldTracker.diagonal_1 = "0000000";
+                                            return document.querySelector(`#column_${i}_${i}`);
                                         }
                                     }
                                 }
 
-                                if(countString(fieldTracker.diagonal_2, playerSymbol) > 1) {
+                                if(countString(fieldTracker.diagonal_2, playerTwoSymbol) > 1) {
                                     let j = choosenSize;
                                     for (let i = 1; i <= choosenSize; i++) {
-                                        if(document.getElementById('id', `#column_${i}_${j}`).classList.contains('free')){
-                                            return document.getElementById(`#column_${i}_${j}`);
+                                        if(document.querySelector(`#column_${i}_${j}`).classList.contains('free')){
+                                            fieldTracker.diagonal_2 = "0000000";
+                                            return document.querySelector(`#column_${i}_${j}`);
                                         }
                                         j--;
                                     }
@@ -305,8 +307,9 @@ const boardModule = (() => {
                                 console.log(`column = ${columnId}, row = ${rowId}`);
                                 if(countString(fieldTracker.diagonal_1, playerSymbol) > 1) {
                                     for(let i = 1; i <= choosenSize; i++) {
-                                        if(document.getElementById(`#column_${i}_${i}`).classList.contains('free')){
-                                            return document.getElementById(`#column_${i}_${i}`);
+                                        if(document.querySelector(`#column_${i}_${i}`).classList.contains('free')){
+                                            fieldTracker.diagonal_1 = "0000000";
+                                            return document.querySelector(`#column_${i}_${i}`);
                                         }
                                     }
                                 }
@@ -314,8 +317,9 @@ const boardModule = (() => {
                                 if(countString(fieldTracker.diagonal_2, playerSymbol) > 1) {
                                     let j = choosenSize;
                                     for (let i = 1; i <= choosenSize; i++) {
-                                        if(document.getElementById('id', `#column_${i}_${j}`).classList.contains('free')){
-                                            return document.getElementById(`#column_${i}_${j}`);
+                                        if(document.querySelector(`#column_${i}_${j}`).classList.contains('free')){
+                                            fieldTracker.diagonal_2 = "0000000";
+                                            return document.querySelector(`#column_${i}_${j}`);
                                         }
                                         j--;
                                     }
