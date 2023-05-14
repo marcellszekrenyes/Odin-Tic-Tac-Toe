@@ -138,7 +138,7 @@ const boardModule = (() => {
 
     }, {once: true});})();
 
-    //I should probably rename these next functions as during the iterations their function have changed a lot
+    //Calls nextRound until there is a winner or draw, then calls gameOver()
     async function gameLogic(playerSymbol, playerTwoSymbol, choosenSize, winningScore, gameMode, allColumns) {
         let roundCount = 1;
         while(true) {
@@ -156,10 +156,11 @@ const boardModule = (() => {
         gameOver();
     }
 
-    //Registers every move into fieldTracker, handles the rounds
+    //Handles the logic of the rounds, based on gameMode etc., returns a boolean which signals if a next round is needed
     async function nextRound(playerSymbol, playerTwoSymbol, choosenSize, winningScore, gameMode, allColumns, roundCount) {
         console.log('1');
         return new Promise((resolve) => {
+            console.log('1.1');
             playBoard.addEventListener("click", (e) => {
                 console.log('2');
                 const clickedColumn = e.target;
@@ -177,7 +178,39 @@ const boardModule = (() => {
                         resolve(true)
                         return;
                     }
-                    setTimeout(() => {
+                    console.log('4.2');
+                    if(gameMode == "PvP"){
+                        console.log('4.3');
+                        playBoard.addEventListener("click", (e) => {
+                            console.log('7.1');
+                            const secondClick = e.target;
+                            if(secondClick.classList.contains('free')) {
+                                const playerTwoWon = nextMove(secondClick, playerTwoSymbol, choosenSize, winningScore);
+                                console.log('7.2');
+                                if(playerTwoWon == true) {
+                                    console.log('8');
+                                    resolve(true);
+                                    console.log('9');
+                                    return;
+                                }
+                                if(checkForDraw(choosenSize) == true){
+                                    console.log('10');
+                                    resolve(true)
+                                    return;
+                                }
+                                console.log('10.1');
+                                resolve(false);
+                                return;
+                            }else {
+                                console.log('11');
+                                resolve(false)
+                                return;
+                            }
+                        }, {once:true});
+                    }
+
+                    if(gameMode == "Easy" || gameMode == "Hard"){
+                        setTimeout(() => {
                         console.log('7');             
                         const playerTwoWon = nextMove(botMove(gameMode, allColumns, playerSymbol, playerTwoSymbol, roundCount, choosenSize), playerTwoSymbol, choosenSize, winningScore);
                         if(playerTwoWon == true) {
@@ -186,6 +219,8 @@ const boardModule = (() => {
                         } else {
                             console.log('9');
                             resolve(checkForDraw(choosenSize))}}, 1500);
+                    }
+
                 } else {
                     console.log('10');
                     resolve(false)}
@@ -233,14 +268,14 @@ const boardModule = (() => {
         stopTracking(rowId, columnId, choosenSize);
         // //Helper
         console.log(fieldTracker);  
-        const gameIsOver = checkProgress(winnerString, rowId, columnId);
+        const gameIsOver = checkForWinner(winnerString, rowId, columnId);
         console.log('2.5');
         console.log(playerSymbol);
         console.log('gameIsOver:' + gameIsOver);
         return gameIsOver;
     }
 
-    //Makes a random move or a hardcore move
+    //Makes a random move or a calculated move, based on gameMode
     function botMove(gameMode, allColumns, playerSymbol, playerTwoSymbol, roundCount, choosenSize) {
         switch(gameMode){
             case 'Easy':
@@ -329,8 +364,6 @@ const boardModule = (() => {
                             }
                         }
                     }
-
-                    
                 }
 
                 
@@ -436,7 +469,7 @@ const boardModule = (() => {
     }
 
     //Returns true if current move won the game
-    function checkProgress(winnerString, row, column) {
+    function checkForWinner(winnerString, row, column) {
         if(fieldTracker[row].includes(winnerString) || fieldTracker[column].includes(winnerString) ||
             fieldTracker.diagonal_1.includes(winnerString) ||fieldTracker.diagonal_2 .includes(winnerString)){
             return true;
@@ -493,7 +526,6 @@ const boardModule = (() => {
             fieldTracker.diagonal_2 = fieldTracker.diagonal_2.replace('T', '');
         }
     }
-
 
     //This object (factory) represents the board's actual state,
     //in Hard mode decisions are made based on this + wins/draws
