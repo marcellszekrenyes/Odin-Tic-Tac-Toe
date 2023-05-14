@@ -10,21 +10,23 @@
 </head>
 <body>
     <div id="gameContainer">
-        <div id="header"><h1>This is the header</h1></div>
+        <div id="header"><h1>Odin Tic-Tac-Toe</h1></div>
         <div id="controlPanel">
             <form action="" id="controlForm">
                 <div class="controls">
                     <fieldset>
-                        <legend>Select your symbol</legend>
-                        <input type="radio" name="playerSymbol" id="X" value="X" checked>
-                        <label for="X">X</label>
-                        <input type="radio" name="playerSymbol" id="O" value="O">
-                        <label for="O">O</label>
+                    <legend><strong>Select your symbol</strong></legend>
+                        <div id="symbolContainer">                        
+                            <input type="radio" name="playerSymbol" id="X" value="X" class="symbolRadio radio" checked>
+                            <label for="X" class="symbolLabel">X</label>
+                            <input type="radio" name="playerSymbol" id="O" value="O"  class="symbolRadio radio"  >
+                            <label for="O" class="symbolLabel">O</label>
+                        </div>
                     </fieldset>
                     <fieldset>
-                        <legend>Set the board size</legend>
+                        <legend><strong>Set board size</strong></legend>
                         <input type="range" id="boardSizer" name="boardSize" min="3" max="6" step="1" value="3" list="sizes">
-                        <datalist id="sizes">
+                        <datalist id="boardSizes">
                             <option value="3" label="3"></option>
                             <option value="4" label="4"></option>
                             <option value="5" label="5"></option>
@@ -32,28 +34,33 @@
                           </datalist>
                     </fieldset>
                     <fieldset>
-                        <legend>Set the winning score</legend>
+                        <legend><strong>Set winning score</strong></legend>
                         <input type="range" id="winningScore" name="winningScore" min="3" max="6" step="1" value="3" list="sizes">
-                        <datalist id="sizes">
-                            <option value="3" label="3"></option>
-                            <option value="4" label="4"></option>
-                            <option value="5" label="5"></option>
-                            <option value="6" label="6"></option>
+                        <datalist id="winningScores">
+                            <option value="3" label="3" id="option_3"></option>
+                            <option value="4" label="4" id="option_4"></option>
+                            <option value="5" label="5" id="option_5"></option>
+                            <option value="6" label="6" id="option_6"></option>
                           </datalist>
                     </fieldset>
                     <fieldset>
-                        <legend>Select game mode</legend>
-                        <input type="radio" name="gameMode" id="Easy" value="Easy">
-                        <label for="Easy">Easy</label>
-                        <input type="radio" name="gameMode" id="Hard" value="Hard" checked>
-                        <label for="Hard">Hard</label>
-                        <input type="radio" name="gameMode" id="PvP" value="PvP">
-                        <label for="PvP">PvP</label>
+                        <legend><strong>Select game mode</strong></legend>
+                        <div id="gameModeContainer">
+                            <input type="radio" name="gameMode" id="PvP" value="PvP"  class="radio">
+                            <label for="PvP" class="radioLabel">PvP</label>
+                            <input type="radio" name="gameMode" id="Easy" value="Easy"  class="radio" checked>
+                            <label for="Easy" class="radioLabel">Easy</label>
+                            <input type="radio" name="gameMode" id="Hard" value="Hard"  class="radio">
+                            <label for="Hard" class="radioLabel">Hard</label>
+                        </div>
                     </fieldset>
-                    <fieldset>
-                        <legend>Controls</legend>
-                        <button id="startButton" type="button">Start</button>
-                        <button id="restartButton">Restart</button>
+                    <fieldset id="buttonField">
+                        <legend><strong>Controls</strong></legend>
+                        <div id="buttonContainer">
+                            <button id="startButton" type="button" class="button" title="Starts game with selected settings">Start</button>
+                            <button id="restartButton" type="button" class="button" title="Restarts current game">Restart</button>
+                        </div>
+                        <button id="resetButton" class="button" title="Resets settings and game">Reset</button>
                     </fieldset>
                 </div>
             </form>
@@ -69,6 +76,7 @@
             <div class="column"></div>
             <div class="column"></div>
         </div>
+        <div id="announcer">You won!</div>
     </div>
 </body>
 </html>

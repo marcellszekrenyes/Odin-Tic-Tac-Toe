@@ -1,3 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&family=Noto+Sans&display=swap');
+
+:root {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #DDDDDD;
+    color: #444444;
+}
+
 html {
     box-sizing: border-box;
 }
@@ -8,7 +16,7 @@ html {
 
 * {
     margin: 0;
-    border: 1px solid red;
+    /* border: 1px solid red; */
 }
 
 #gameContainer {
@@ -16,15 +24,19 @@ html {
     grid-template-columns: 1fr 6fr;
     grid-template-rows: 1fr 12fr;
     width: 98vw;
-    height: 98vh;
+    height: 100vh;
 }
 
 #header {
     grid-column: 1 / 3;
     grid-row: 1 / 2;
     height: 100%;
+    width: 100vw;
     display: flex;
     align-items: center;
+    font-size: 2.2rem;
+    border-bottom: 4px solid #888888;
+    padding-left: 1.2%;
 }
 
 #controlPanel {
@@ -35,6 +47,8 @@ html {
     flex-direction: column;
     align-items: center;
     justify-content: start;
+    border-right: 4px solid #888888;
+    padding-top: 5%;
 }
 
 #controlForm {
@@ -51,7 +65,9 @@ datalist {
     display: flex;
     justify-content: space-between;
     width: 90%;
-    font-size: 0.7rem;
+    font-size: 1rem;
+    font-weight: bold;
+    padding-top: 2%;
   }
 
 #playBoard {
@@ -62,8 +78,9 @@ datalist {
     align-self: center;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
-    width: 750px;
-    height: 750px;
+    width: 700px;
+    height: 700px;
+    border: 2px solid #888888;
 }
 
 .column {
@@ -72,13 +89,194 @@ datalist {
     align-items: center;
     justify-content: center;
     /* font-size: 10rem; */
+    background-color: #DDDDDD;
+    border: 2px solid #888888;
 }
 
 .column:hover {
     transition: 0.3s;
-    background-color: rgb(238, 238, 40);
+    background-color: #f8b444;
 }
 
 #winningScore {
     width: 90%;
+}
+
+fieldset {
+    margin-bottom: 5%;
+    border: none;
+    font-size: 1.2rem;
+}
+
+/*********** Baseline, reset styles ***********/
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  width: 25rem;
+}
+
+/* Removes default focus */
+input[type="range"]:focus {
+  outline: none;
+}
+
+/******** Chrome, Safari, Opera and Edge Chromium styles ********/
+/* slider track */
+input[type="range"]::-webkit-slider-runnable-track {
+  background-color: #f8b444;
+  border-radius: 0.5rem;
+  height: 0.5rem;
+}
+
+/* slider thumb */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  margin-top: -4px; /* Centers thumb on the track */
+  background-color: #888888;
+  border-radius: 0.5rem;
+  height: 1rem;
+  width: 1rem;
+}
+
+input[type="range"]:focus::-webkit-slider-thumb {
+  outline: 3px solid #888888;
+  outline-offset: 0.125rem;
+}
+
+/*********** Firefox styles ***********/
+/* slider track */
+input[type="range"]::-moz-range-track {
+  background-color: #f8b444;
+  border-radius: 0.5rem;
+  height: 0.5rem;
+}
+
+/* slider thumb */
+input[type="range"]::-moz-range-thumb {
+  background-color: #888888;
+  border: none; /*Removes extra border that FF applies*/
+  border-radius: 0.5rem;
+  height: 1rem;
+  width: 1rem;
+}
+
+input[type="range"]:focus::-moz-range-thumb{
+  outline: 3px solid #888888;
+  outline-offset: 0.125rem;
+}
+
+/*********** Radio button styles ***********/
+.radio {
+	position: relative;
+	display: block;
+}
+
+.symbolLabel {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    margin-left: 2%;
+    margin: 0.5em;
+    width: 30%;
+    cursor: pointer;
+    color: #444444;
+    background: #DDDDDD;
+    border: 2px solid #888888;
+    text-align: center;
+}
+
+.symbolLabel:hover {
+    transition: 0.3s;
+    background-color: #f8b444;
+}
+
+.radio:checked + .symbolLabel{
+    transition: 0.3s;
+    background-color: #f8b444;
+}
+
+input[type="radio"] {
+    display: none;
+    position: absolute;
+    width: 100%;
+    appearance: none;
+}
+
+.radioLabel {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    margin: 0.5em;
+    cursor: pointer;
+    color: #444444;
+    background: #DDDDDD;
+    border: 2px solid #888888;
+    text-align: center;
+}
+
+.radioLabel:hover {
+    transition: 0.3s;
+    background-color: #f8b444;
+}
+
+.radio:checked + .radioLabel{
+    transition: 0.3s;
+    background-color: #f8b444;
+}
+
+#symbolContainer {
+    display: flex;
+    width: 95%;
+}
+
+.symbolLabel {
+    flex: 1 1 100%;
+    width: 100%;
+}
+
+#gameModeContainer {
+    display: flex;
+    flex-direction: column;
+    width: 95%;
+}
+
+#buttonContainer {
+    display: flex;
+    width: 95%;
+}
+
+.button {
+    display: inline-block;
+    padding: 0.5rem 0.5rem;
+    margin: 0.5em;
+    font-size: 1.2rem;
+    width: 45%;
+    cursor: pointer;
+    color: #444444;
+    background: #DDDDDD;
+    border: 2px solid #888888;
+    text-align: center;
+}
+
+.button:hover {
+    transition: 0.3s;
+    background-color: #f8b444;
+}
+
+#resetButton {
+    width: 86%;
+}
+
+#announcer {
+    display: none;
+    position: absolute;
+    text-align: center;
+    padding-top: 0.5%;
+    font-size: 10rem;
+    top: 400px;
+    width: 100%;
+    height: 25%;
+    opacity: 1;
+    background-color: rgba(136, 136, 136, 0.9);
 }

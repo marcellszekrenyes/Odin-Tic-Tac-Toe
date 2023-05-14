@@ -5,6 +5,7 @@ const boardModule = (() => {
     const playBoard = document.querySelector('#playBoard');
     const column = document.querySelector('.column');
     const boardSizer = document.querySelector('#boardSizer');
+    const winningScore = document.querySelector('#winningScore');
     const allColumns = playBoard.children;
 
     //sets size of #playBoard
@@ -47,14 +48,13 @@ const boardModule = (() => {
             }
         }else if(choosenSize == 5) {
             for(nextColumn of allColumns){
-                nextColumn.setAttribute('style', `font-size: 7rem`);
+                nextColumn.setAttribute('style', `font-size: 6.8rem`);
             }
         }else if(choosenSize == 6) {
             for(nextColumn of allColumns){
-                nextColumn.setAttribute('style', `font-size: 6rem`);
+                nextColumn.setAttribute('style', `font-size: 5.7rem`);
             }
         }
-
     }
 
     //adds numbered id-s for all the columns, used for later referencing
@@ -79,15 +79,70 @@ const boardModule = (() => {
         }
     }
 
-    return {boardSizer, allColumns, setPlayBoardSize, playBoardStyler, addId, addFreeClass};
+    //Resets innerHTML of columns
+    function resetPlayBoard(allColumns) {
+        for(nextColumn of allColumns) { 
+            nextColumn.textContent = "";
+        }
+    }
+
+    return {boardSizer, allColumns, winningScore, setPlayBoardSize, playBoardStyler, addId, addFreeClass, resetPlayBoard};
 })();
-  
+
+//Working logic of the control panel
+(function controlPanel() {
+    //Gets boardSizer.value when clicked, sets limits for other inputs
+    boardSizer.addEventListener('click', () => {
+
+        if(boardSizer.value > 3){
+            disable(document.getElementById("Hard"));
+            if(document.getElementById("Hard").checked){
+                document.getElementById("Easy").checked = true;
+            }
+        }
+
+        if(boardSizer.value == 3){
+            enable(document.getElementById("Hard"))
+        }
+
+        if(document.getElementById("winningScore").value >= boardSizer.value){
+            document.getElementById("winningScore").value = boardSizer.value;
+            console.log(document.getElementById("winningScore").value);
+        }
+
+        console.log(boardSizer.value)
+    });
+
+    document.getElementById("winningScore").addEventListener('click', () => {
+        if(document.getElementById("winningScore").value >= boardSizer.value){
+            document.getElementById("winningScore").value = boardSizer.value;
+            console.log(document.getElementById("winningScore").value);
+        }
+    });
+
+    function disable(element){
+        if(element.disabled == false){
+            element.disabled = true;
+        }else {return;}
+    }
+
+    function enable(element){
+        if(element.disabled == true){
+            element.disabled = false;
+        }else {return;}
+    }
+
+})();
 
 //Contains all the controls of the game
 (function gameController() {
     const startButton = document.querySelector('#startButton');
     const restartButton = document.querySelector('#restartButton');
-    
+
+    //Starts the game if #startButton is clicked,user input gets collected
+    startButton.addEventListener('click', () => {
+        startGame();
+    }, {once:true})    
 
     //Creates new players
     const createPlayer = (name, symbol) => {
@@ -96,16 +151,23 @@ const boardModule = (() => {
         return {symbol, name};
     };
     
-    //Starts the game if #startButton is clicked
-    (function startGame() {
-
-        //On click user input is collected
-        startButton.addEventListener('click', () => {
-        const choosenSize = boardModule.boardSizer.value;
-        const winningScore = document.querySelector('#winningScore').value;
+    //Starts the game
+    function startGame() {
+        const choosenSize = boardModule.boardSizer.value; 
         const playerSymbol = document.forms.controlForm.elements.playerSymbol.value;
         const gameMode = document.forms.controlForm.elements.gameMode.value;
         const allColumns = boardModule.allColumns;
+        const winningScore = boardModule.winningScore.value;
+
+        document.getElementById('controlPanel').style.pointerEvents = 'none';
+        document.getElementById('buttonField').style.pointerEvents = 'auto';
+
+        //restarts match with current settings
+        restartButton.addEventListener('click', () => {
+            resetFieldTracker();
+            boardModule.resetPlayBoard(allColumns);              
+            startGame();
+        })
 
         //sets the symbol for player two
         const playerTwoSymbol =  (() => {
@@ -118,25 +180,20 @@ const boardModule = (() => {
 
         if(choosenSize >= winningScore){
             //Game is set up based on the collected inputs
-            const playerOne = createPlayer("Marcell", playerSymbol);
-            const playerTwo = createPlayer("Bot", playerTwoSymbol);
+            const playerOne = createPlayer("Player One", playerSymbol);
+            const playerTwo = createPlayer("Player Two", playerTwoSymbol);
             boardModule.playBoardStyler(choosenSize, allColumns);
             boardModule.setPlayBoardSize(choosenSize);
             boardModule.addId(choosenSize, allColumns);
             boardModule.addFreeClass(allColumns);
             startTracking(choosenSize);
             gameLogic(playerSymbol, playerTwoSymbol, choosenSize, winningScore, gameMode, allColumns);
-
-            // //Just some helpers
-            // console.log(playerOne);
-            // console.log(winningScore);
         } else {
             alert('The score required for winning can not be higher than the board size! Set it again!');
-            startGame();
+            setTimeout(() => {startGame()}, 5000);
         }
-        // restartButton.addEventListener('click', () =>{})
 
-    }, {once: true});})();
+    }
 
     //Calls nextRound until there is a winner or draw, then calls gameOver()
     async function gameLogic(playerSymbol, playerTwoSymbol, choosenSize, winningScore, gameMode, allColumns) {
@@ -145,84 +202,75 @@ const boardModule = (() => {
             let isLastRound = false;
             await nextRound(playerSymbol, playerTwoSymbol, choosenSize, winningScore, gameMode, allColumns, roundCount).then((res) => {
                 isLastRound = res;
-                console.log('isLastRound:' + isLastRound)
-                console.log('11');
             });
             if(isLastRound == true) {
                 break;
             }
             roundCount++;
         }
-        gameOver();
+        gameOver(allColumns);
     }
 
     //Handles the logic of the rounds, based on gameMode etc., returns a boolean which signals if a next round is needed
     async function nextRound(playerSymbol, playerTwoSymbol, choosenSize, winningScore, gameMode, allColumns, roundCount) {
-        console.log('1');
         return new Promise((resolve) => {
-            console.log('1.1');
             playBoard.addEventListener("click", (e) => {
-                console.log('2');
                 const clickedColumn = e.target;
                 if(clickedColumn.classList.contains('free')) {
                     const playerOneWon = nextMove(clickedColumn, playerSymbol, choosenSize, winningScore);
-                    console.log('3');
+
                     if(playerOneWon == true) {
-                        console.log('4');
+                        announcer('won');
                         resolve(true);
-                        console.log('5');
                         return;
                     }
+
                     if(checkForDraw(choosenSize) == true){
-                        console.log('6');
+                        announcer('draw');
                         resolve(true)
                         return;
                     }
-                    console.log('4.2');
+
                     if(gameMode == "PvP"){
-                        console.log('4.3');
                         playBoard.addEventListener("click", (e) => {
-                            console.log('7.1');
                             const secondClick = e.target;
                             if(secondClick.classList.contains('free')) {
                                 const playerTwoWon = nextMove(secondClick, playerTwoSymbol, choosenSize, winningScore);
-                                console.log('7.2');
+
                                 if(playerTwoWon == true) {
-                                    console.log('8');
+                                    announcer('won');
                                     resolve(true);
-                                    console.log('9');
                                     return;
                                 }
+
                                 if(checkForDraw(choosenSize) == true){
-                                    console.log('10');
+                                    announcer('draw');
                                     resolve(true)
                                     return;
                                 }
-                                console.log('10.1');
+
                                 resolve(false);
                                 return;
                             }else {
-                                console.log('11');
-                                resolve(false)
+                                resolve(false);
                                 return;
                             }
                         }, {once:true});
                     }
 
                     if(gameMode == "Easy" || gameMode == "Hard"){
-                        setTimeout(() => {
-                        console.log('7');             
+                        setTimeout(() => {         
                         const playerTwoWon = nextMove(botMove(gameMode, allColumns, playerSymbol, playerTwoSymbol, roundCount, choosenSize), playerTwoSymbol, choosenSize, winningScore);
                         if(playerTwoWon == true) {
-                            console.log('8');
-                        resolve(true);
+                            announcer('lost');
+                            resolve(true);
                         } else {
-                            console.log('9');
-                            resolve(checkForDraw(choosenSize))}}, 1500);
-                    }
-
+                            if(checkForDraw(choosenSize) == true){
+                                announcer('draw');
+                            }
+                            resolve(checkForDraw(choosenSize))}}, 1000);
+                        }
                 } else {
-                    console.log('10');
                     resolve(false)}
             }, {once:true});}
         );
@@ -240,6 +288,7 @@ const boardModule = (() => {
 
         //If one of fieldTracker's strings contain this substring, the player has won
         let winnerString = playerSymbol.repeat(winningScore);
+        console.log(winnerString);
 
         //.free is removed, in case of next click the next move
         //in fieldTracker is not registered again
@@ -247,31 +296,25 @@ const boardModule = (() => {
 
         //registering moves in rows and columns
         fieldTracker[rowId] = fieldTracker[rowId].replace(column, playerSymbol);
-        // alert(fieldTracker[rowId]);
         fieldTracker[columnId] = fieldTracker[columnId].replace(row, playerSymbol);
-        // alert(fieldTracker[columnId]);
+
 
         //registering in diagonal between LT-RB
         if(row == column){
             fieldTracker.diagonal_1 = fieldTracker.diagonal_1.replace(row, playerSymbol);
-            // alert(fieldTracker.diagonal_1);
         }
 
         //registering in diagonal between LB-RT
         for(let i = 0; i < choosenSize; i++){
             if(row == i + 1 && column == choosenSize - i) {
                 fieldTracker.diagonal_2 = fieldTracker.diagonal_2.replace(column, playerSymbol);
-                // alert(fieldTracker.diagonal_2);
             }
         }
         
         stopTracking(rowId, columnId, choosenSize);
-        // //Helper
         console.log(fieldTracker);  
         const gameIsOver = checkForWinner(winnerString, rowId, columnId);
-        console.log('2.5');
-        console.log(playerSymbol);
-        console.log('gameIsOver:' + gameIsOver);
+        console.log(gameIsOver);
         return gameIsOver;
     }
 
@@ -291,7 +334,6 @@ const boardModule = (() => {
                 let extraGrade = [];
                 let secondGrade = [];
                 let thirdGrade = [];
-                console.log(`roundCount = ${roundCount}`);
                 if(roundCount >= 1){
 
                     //WINNER
@@ -303,11 +345,10 @@ const boardModule = (() => {
 
                             if(countString(fieldTracker[rowId], playerTwoSymbol) > 1 || countString(fieldTracker[columnId], playerTwoSymbol) > 1 ||
                               countString(fieldTracker.diagonal_1, playerTwoSymbol) > 1 || countString(fieldTracker.diagonal_2, playerTwoSymbol) > 1){
-                                console.log('return winner');
                                 if(countString(fieldTracker.diagonal_1, playerTwoSymbol) > 1) {
                                     for(let i = 1; i <= choosenSize; i++) {
                                         if(document.querySelector(`#column_${i}_${i}`).classList.contains('free')){
-                                            fieldTracker.diagonal_1 = "0000000";
+                                            fieldTracker.diagonal_1.replace(`${i}`, playerTwoSymbol);
                                             return document.querySelector(`#column_${i}_${i}`);
                                         }
                                     }
@@ -317,14 +358,16 @@ const boardModule = (() => {
                                     let j = choosenSize;
                                     for (let i = 1; i <= choosenSize; i++) {
                                         if(document.querySelector(`#column_${i}_${j}`).classList.contains('free')){
-                                            fieldTracker.diagonal_2 = "0000000";
+                                            fieldTracker.diagonal_2.replace(`${j}`, playerTwoSymbol);
                                             return document.querySelector(`#column_${i}_${j}`);
                                         }
                                         j--;
                                     }
                                 }
                                 
-                                return nextColumn;
+                                if(countString(fieldTracker[rowId], playerTwoSymbol) > 1 || countString(fieldTracker[columnId], playerTwoSymbol) > 1) {
+                                    return nextColumn;
+                                }
                             }
                         }
                     }
@@ -338,12 +381,11 @@ const boardModule = (() => {
 
                             if(countString(fieldTracker[rowId], playerSymbol) > 1 || countString(fieldTracker[columnId], playerSymbol) > 1  ||
                               countString(fieldTracker.diagonal_1, playerSymbol) > 1 || countString(fieldTracker.diagonal_2, playerSymbol) > 1){
-                                console.log('return saver');
                                 console.log(`column = ${columnId}, row = ${rowId}`);
                                 if(countString(fieldTracker.diagonal_1, playerSymbol) > 1) {
                                     for(let i = 1; i <= choosenSize; i++) {
                                         if(document.querySelector(`#column_${i}_${i}`).classList.contains('free')){
-                                            fieldTracker.diagonal_1 = "0000000";
+                                            fieldTracker.diagonal_1.replace(`${i}`, playerSymbol);
                                             return document.querySelector(`#column_${i}_${i}`);
                                         }
                                     }
@@ -353,14 +395,16 @@ const boardModule = (() => {
                                     let j = choosenSize;
                                     for (let i = 1; i <= choosenSize; i++) {
                                         if(document.querySelector(`#column_${i}_${j}`).classList.contains('free')){
-                                            fieldTracker.diagonal_2 = "0000000";
+                                            fieldTracker.diagonal_2.replace(`${j}`, playerSymbol);
                                             return document.querySelector(`#column_${i}_${j}`);
                                         }
                                         j--;
                                     }
                                 }
 
-                                return nextColumn;
+                                if(countString(fieldTracker[rowId], playerSymbol) > 1 || countString(fieldTracker[columnId], playerSymbol) > 1) {
+                                     return nextColumn;
+                                }
                             }
                         }
                     }
@@ -376,7 +420,6 @@ const boardModule = (() => {
                         //ONLY IN FIRST ROUND
                         if(roundCount == 1){
                             if(!(fieldTracker[rowId].includes(`${playerSymbol}`)) && !(fieldTracker[columnId].includes(`${playerSymbol}`))) {
-                                console.log('added to firstrounder');
                                 firstRounder.push(nextColumn);                                   
                             }                    
                         }
@@ -384,35 +427,30 @@ const boardModule = (() => {
                         //FIRSTGRADE
                         if((fieldTracker[rowId].includes(playerTwoSymbol) && fieldTracker[columnId].includes(playerTwoSymbol)) && 
                           (!fieldTracker[rowId].includes(playerSymbol) && !fieldTracker[columnId].includes(playerSymbol))) {
-                            console.log('added to firstGrades');
                             firstGrade.push(nextColumn);
                         }
 
                         //FIRSTGRADE DIAGONAL
                         if((fieldTracker.diagonal_1.includes(playerTwoSymbol) && fieldTracker.column_2.includes(playerTwoSymbol)) && 
                           (!fieldTracker.diagonal_1.includes(playerSymbol) && !fieldTracker.diagonal_1.includes(playerSymbol))) {
-                            console.log('added to firstGrades');
                             firstGrade.push(nextColumn);
                         }
 
                         //EXTRAGRADE
                         if((fieldTracker[rowId].includes(playerTwoSymbol) || fieldTracker[columnId].includes(playerTwoSymbol)) &&
                           ((!fieldTracker[rowId].includes(playerSymbol) && !fieldTracker[columnId].includes(playerSymbol)))){
-                            console.log('added to extraGrades');
                             extraGrade.push(nextColumn);
                           }
 
                         //SECONDGRADE
                         if((fieldTracker[rowId].includes(playerTwoSymbol) && fieldTracker[columnId].includes(playerTwoSymbol)) && 
                           (!fieldTracker[rowId].includes(playerSymbol) || !fieldTracker[columnId].includes(playerSymbol))){
-                            console.log('added to secondGrades');
                             secondGrade.push(nextColumn);
                         }
 
                         //SECONDGRADE DIAGONAL
                         if((fieldTracker.diagonal_1.includes(playerTwoSymbol) && fieldTracker.diagonal_2.includes(playerTwoSymbol)) && 
                           (!fieldTracker.diagonal_1.includes(playerSymbol) || !fieldTracker.diagonal_2.includes(playerSymbol))){
-                            console.log('added to secondGrades');
                             secondGrade.push(nextColumn);
                         }
 
@@ -427,25 +465,19 @@ const boardModule = (() => {
                 }
                 
                 if (firstRounder.length > 0){
-                    console.log('return firstRounder');
                     return firstRounder[Math.floor(Math.random() * firstRounder.length)];
                 }else if(firstGrade.length > 0){
-                    console.log('return firstGrade');
                     return firstGrade[Math.floor(Math.random() * firstGrade.length)];
                 }else if(extraGrade.length > 0){
-                    console.log('return extraGrade');
                     return extraGrade[Math.floor(Math.random() * extraGrade.length)];
                 }else if(secondGrade.length > 0){
-                    console.log('return secondGrade');
                     return secondGrade[Math.floor(Math.random() * secondGrade.length)];
                 }else if(thirdGrade.length > 0){
-                    console.log('return secondGrade');
                     return thirdGrade[Math.floor(Math.random() * thirdGrade.length)];
                 }else{
                     while (true) {
                     const randomElement = allColumns[Math.floor(Math.random() * allColumns.length)];
                     if(randomElement.classList.contains('free')) {
-                        console.log('return random');
                         return randomElement;
                     }}
                 }
@@ -459,7 +491,6 @@ const boardModule = (() => {
     
         // looping through the items
         for (let i = 0; i < string.length; i++) {
-    
             // check if the character is at that position
             if (string.charAt(i) == letter) {
                 count += 1;
@@ -471,7 +502,7 @@ const boardModule = (() => {
     //Returns true if current move won the game
     function checkForWinner(winnerString, row, column) {
         if(fieldTracker[row].includes(winnerString) || fieldTracker[column].includes(winnerString) ||
-            fieldTracker.diagonal_1.includes(winnerString) ||fieldTracker.diagonal_2 .includes(winnerString)){
+            fieldTracker.diagonal_1.includes(winnerString) || fieldTracker.diagonal_2.includes(winnerString)){
             return true;
         } else {
             return false;
@@ -479,8 +510,16 @@ const boardModule = (() => {
     }
 
     //Ends the game
-    function gameOver() {
+    function gameOver(allColumns) {
         console.log('this is the end');
+        document.getElementById('controlPanel').style.pointerEvents = 'auto';
+
+        //restarts match with current settings
+        startButton.addEventListener('click', () => {
+            resetFieldTracker();
+            boardModule.resetPlayBoard(allColumns);              
+            startGame();
+        }, {once: true})
     }
 
     ///Checks for draw and returns a boolean
@@ -527,6 +566,60 @@ const boardModule = (() => {
         }
     }
 
+    //resets fieldTracker
+    function resetFieldTracker() {
+        for(let i = 1; i <= boardModule.boardSizer.max; i++){
+            const row = `row_${i}`;
+            const column = `column_${i}`;
+            fieldTracker[row] = '123456';
+            fieldTracker[column] = '123456';
+        }
+        fieldTracker.diagonal_1 = '123456T';
+        fieldTracker.diagonal_2 = '123456T';
+    }
+
+    //Announces the result
+    function announcer(string) {
+        if(string == 'won'){
+            document.getElementById('announcer').textContent = 'You won!'; 
+            document.getElementById('announcer').style.display = 'initial';
+            document.getElementById('playBoard').style.opacity = 0.5;
+            document.getElementById('controlPanel').style.opacity = 0.5;
+            document.getElementById('header').style.opacity = 0.5;
+        }
+
+        if(string == 'lost'){
+            document.getElementById('announcer').textContent = 'You lost!'; 
+            document.getElementById('announcer').style.display = 'initial';
+            document.getElementById('playBoard').style.opacity = 0.5;
+            document.getElementById('controlPanel').style.opacity = 0.5;
+            document.getElementById('header').style.opacity = 0.5;    
+        }
+        
+        if(string == 'draw'){
+            document.getElementById('announcer').textContent = 'It\'s a draw!';
+            document.getElementById('announcer').style.display = 'initial';
+            document.getElementById('playBoard').style.opacity = 0.5;
+            document.getElementById('controlPanel').style.opacity = 0.5;
+            document.getElementById('header').style.opacity = 0.5;       
+        }
+
+        setTimeout(() => {
+            document.querySelector('html').addEventListener('click', () => {
+                removeAnouncement();
+            }, {once: true})
+        }, 100);
+        
+    }
+
+    //Removes the announcement banner, resets opacity
+    function removeAnouncement() {
+            document.getElementById('announcer').style.display = 'none';
+            document.getElementById('playBoard').style.opacity = 1;
+            document.getElementById('controlPanel').style.opacity = 1;
+            document.getElementById('header').style.opacity = 1;
+    }
+
     //This object (factory) represents the board's actual state,
     //in Hard mode decisions are made based on this + wins/draws
     //are determined after reading it out
@@ -554,6 +647,7 @@ const boardModule = (() => {
     })();
     
 })();
+
 
 
 
